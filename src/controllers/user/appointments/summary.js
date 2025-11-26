@@ -3,10 +3,11 @@
 "use strict";
 
 const Joi = require("joi");
-const { validate } = require("@src/middleware");
+const { validate, verifyAuth } = require("@src/middleware");
 const { getAppointmentsSummary } = require("@src/services/appointmentsService");
 
 const CONTROLLER = [
+  verifyAuth(),
   validate({ query: Joi.object({}) }),
 
   async function appointmentsSummaryController(req, res) {

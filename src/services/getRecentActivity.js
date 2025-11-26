@@ -18,7 +18,7 @@ async function getRecentActivity({ page = 1, limit = 20, search, source, status 
   let query = supabase
     .from(TABLE_NAME)
     .select("*", { count: "exact" }) // all columns
-    .order("created_at", { ascending: false })
+    .order("id", { descending: true })
     .range(from, to);
 
   // 🔍 Search in lead_name, lead_number, email

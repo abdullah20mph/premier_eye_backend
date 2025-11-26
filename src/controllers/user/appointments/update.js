@@ -1,7 +1,7 @@
 "use strict";
 
 const Joi = require("joi");
-const { validate } = require("@src/middleware");
+const { validate, verifyAuth } = require("@src/middleware");
 const { updateAppointment } = require("@src/services/appointmentsService");
 
 const STATUS_VALUES = [
@@ -35,6 +35,7 @@ const INSURANCE_PROVIDERS = [
 ];
 
 const CONTROLLER = [
+  verifyAuth(),
   validate({
     params: Joi.object({
       id: Joi.number().integer().required(),

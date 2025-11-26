@@ -1,42 +1,57 @@
+// src/services/overviewService.js
 "use strict";
 
 const { supabase } = require("@src/config/supabase");
 
-const TABLE_NAME = "premier"; // ← change if your table name is different
+const LEADS_TABLE = "premier";
+
+// shape one row for the dashboard "Action Required" card
+function mapOverviewRow(row) {
+  if (!row) return null;
+
+  return {
+    id: row.id,
+    lead_name: row.lead_name,
+    lead_number: row.lead_number,
+    location_preference: row.location_preference,
+    source: row.source || null,          // if you add a source column later
+    pipeline_stage: row.pipeline_stage,  // should be "NEEDS_ACTION" here
+    ai_summary: row.call_summary || null,
+    latest_reply: row.latest_reply || null, // or map from another field if needed
+    created_at: row.created_at,
+    timestamp: row.timestamp || null,
+  };
+}
 
 /**
- * Get paginated calls for the Overview "Action Required" cards.
- * Right now this just returns latest calls; you can later add filters
- * (e.g. only certain call_status values) if needed.
+ * Fetch only leads that require action (pipeline_stage = 'NEEDS_ACTION')
+ * with pagination support.
  */
-async function getOverviewCalls({ page = 1, limit = 10 }) {
-  page = Number(page) || 1;
-  limit = Number(limit) || 10;
+async function getOverviewCalls({ page = 1, limit = 10 } = {}) {
+  const pageNum = Number(page) || 1;
+  const pageSize = Number(limit) || 10;
+  const from = (pageNum - 1) * pageSize;
+  const to = from + pageSize - 1;
 
-  const from = (page - 1) * limit;
-  const to = from + limit - 1;
-
-  // Select all columns, ordered by created_at (newest first)
   const { data, error, count } = await supabase
-    .from(TABLE_NAME)
+    .from(LEADS_TABLE)
     .select("*", { count: "exact" })
-    .order("created_at", { ascending: false })
+    .eq("pipeline_stage", "NEEDS_ACTION")    // 🔴 only Needs Action
+    .order("id", { ascending: true })
     .range(from, to);
 
   if (error) {
+    console.error("Supabase error in getOverviewCalls:", error);
     throw error;
   }
 
-  const total = count || 0;
-  const totalPages = Math.ceil(total / limit);
-
   return {
-    items: data || [],
+    items: (data || []).map(mapOverviewRow),
     pagination: {
-      page,
-      limit,
-      total,
-      totalPages,
+      page: pageNum,
+      limit: pageSize,
+      total: count || 0,
+      hasMore: count ? to + 1 < count : false,
     },
   };
 }

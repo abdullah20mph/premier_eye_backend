@@ -1,10 +1,11 @@
 "use strict";
 
 const Joi = require("joi");
-const { validate } = require("@src/middleware");
+const { validate, verifyAuth } = require("@src/middleware");
 const { getAppointmentsInRange } = require("@src/services/appointmentsService");
 
 const CONTROLLER = [
+  verifyAuth(),
   validate({
     query: Joi.object({
       start: Joi.string().isoDate().required(),

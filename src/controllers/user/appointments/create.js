@@ -1,7 +1,7 @@
 "use strict";
 
 const Joi = require("joi");
-const { validate } = require("@src/middleware");
+const { validate, verifyAuth } = require("@src/middleware");
 const { createAppointment } = require("@src/services/appointmentsService");
 
 // ==== Shared enums ====
@@ -36,6 +36,7 @@ const INSURANCE_PROVIDERS = [
 ];
 
 const CONTROLLER = [
+  verifyAuth(),
   validate({
     body: Joi.object({
       // appointment core

@@ -21,7 +21,7 @@ async function getAiSalesCalls({ page = 1, limit = 20, status, search }) {
   let query = supabase
     .from(TABLE_NAME)
     .select("id, created_at, lead_name, location_preference, call_status, call_summary", { count: "exact" })
-    .order("created_at", { ascending: false })
+    .order("id", { descending: true })
     .range(from, to);
 
   // optional status filter (comma separated)

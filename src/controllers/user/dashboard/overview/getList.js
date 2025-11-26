@@ -1,7 +1,8 @@
 "use strict";
 
 const Joi = require("joi");
-const { validate } = require("@src/middleware");
+// const jwt = require("jsonwebtoken");
+const { verifyAuth, validate } = require("@src/middleware");
 const { getOverviewCalls } = require("@src/services/overviewService");
 
 /**
@@ -12,6 +13,7 @@ const { getOverviewCalls } = require("@src/services/overviewService");
  *  - limit (optional, default 10)
  */
 const CONTROLLER = [
+  verifyAuth(),
   validate({
     query: Joi.object({
       page: Joi.number().integer().min(1).optional(),

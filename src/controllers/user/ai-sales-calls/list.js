@@ -2,10 +2,12 @@
 
 const Joi = require("joi");
 const { getAiSalesCalls } = require("@src/services/aiSalesCallService");
-const { validate } = require("@src/middleware");
+const { validate,verifyAuth } = require("@src/middleware");
 const { response } = require("@src/utils");
 
 const CONTROLLER = [
+  // verify authentication
+  verifyAuth(),
   // validate query params
   validate({
     query: Joi.object({

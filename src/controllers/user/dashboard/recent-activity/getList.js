@@ -1,10 +1,11 @@
 "use strict";
 
 const Joi = require("joi");
-const { validate } = require("@src/middleware");
+const { validate, verifyAuth } = require("@src/middleware");
 const { getRecentActivity } = require("@src/services/getRecentActivity");
 
 const CONTROLLER = [
+    verifyAuth(),
   // validate query params
   validate({
     query: Joi.object({
