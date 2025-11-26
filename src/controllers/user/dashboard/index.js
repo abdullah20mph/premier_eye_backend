@@ -3,7 +3,7 @@
 // ------------------------- Exports -------------------------
 
 module.exports = {
-  ...require("./ai-sales-calls"),
-  ...require("./dashboard"),
-  ...require("./appointments"),
+  ...require("./overview"),
+  ...require("./recent-activity"),
+
 };

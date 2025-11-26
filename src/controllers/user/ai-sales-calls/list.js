@@ -2,7 +2,7 @@
 
 const Joi = require("joi");
 const { getAiSalesCalls } = require("@src/services/aiSalesCallService");
-const { validate } = require("@src/middleware/validate");
+const { validate } = require("@src/middleware");
 const { response } = require("@src/utils");
 
 const CONTROLLER = [

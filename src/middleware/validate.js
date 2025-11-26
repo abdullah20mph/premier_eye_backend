@@ -26,4 +26,4 @@ const validate = (schemas) => {
   };
 };
 
-module.exports = { validate };
+module.exports =  validate ;

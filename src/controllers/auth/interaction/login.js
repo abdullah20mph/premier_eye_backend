@@ -3,7 +3,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const Joi = require("joi");
-const { validate } = require("@src/middleware/validate");
+const { validate } = require("@src/middleware");
 const { supabase } = require("@src/config/supabase");
 
 const SECRET_KEY = process.env.JWT_SECRET;
