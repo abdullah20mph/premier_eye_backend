@@ -27,6 +27,7 @@ const swaggerDefinition = {
     security: [
       {
         bearerAuth: [],
+        APIKeyAuth: [],
       },
     ],
   },

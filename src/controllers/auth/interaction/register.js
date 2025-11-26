@@ -2,7 +2,7 @@
 
 const bcrypt = require("bcryptjs");
 const Joi = require("joi");
-const { validate } = require("@src/middleware/validate");
+const { validate } = require("@src/middleware");
 const { supabase } = require("@src/config/supabase");
 const { response } = require("@src/utils");
 
