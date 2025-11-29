@@ -2,7 +2,7 @@
 
 const { Router } = require("express");
 
-const { appointmentsSummaryController, upcomingAppointmentsController, createAppointmentController, updateAppointmentController, appointmentsRangeController } = require("@src/controllers/user/appointments");
+const { appointmentsSummaryController, upcomingAppointmentsController, createAppointmentController, updateAppointmentController, listAllAppointments, appointmentsRangeController } = require("@src/controllers/user/appointments");
 
 
 const router = Router();
@@ -21,5 +21,8 @@ router.route("/")
 
 router.route("/:id")
     .patch(updateAppointmentController);
+
+router.route("/all")
+    .get(listAllAppointments);
 
 module.exports = Router().use("/appointments", router);

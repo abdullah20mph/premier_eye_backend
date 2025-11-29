@@ -8,7 +8,7 @@ const {
 } = require("@src/services/salesPipelineService");
 
 const CONTROLLER = [
-  verifyAuth(),
+  // verifyAuth(),
   validate({
     params: Joi.object({
       id: Joi.number().integer().required(),

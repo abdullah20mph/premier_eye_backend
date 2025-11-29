@@ -5,6 +5,18 @@ const { supabase } = require("@src/config/supabase");
 const TABLE = "appointments";
 const LEADS_TABLE = "premier"; // your existing leads table
 
+// These are the same as in your controller STATUS_VALUES
+const STATUS_VALUES = [
+  "AI CALLED - NO ANSWER",
+  "AI SPOKE TO LEAD",
+  "SCHEDULED",
+  "NEEDS VA TO FOLLOW UP",
+  "APPOINTMENT BOOKED",
+  "APPOINTMENT COMPLETED",
+  "NO SHOW",
+  "NOT INTERESTED",
+];
+
 // Helper: build an update object with only defined keys
 function buildUpdates(obj) {
   return Object.fromEntries(
@@ -32,27 +44,29 @@ function mapAppointment(row) {
 async function getAppointmentsSummary() {
   const nowIso = new Date().toISOString();
 
+  // Treat "SCHEDULED" + "APPOINTMENT BOOKED" as upcoming
   const { count: scheduledUpcoming } = await supabase
     .from(TABLE)
     .select("id", { count: "exact", head: true })
-    .eq("status", "SCHEDULED")
+    .in("status", ["SCHEDULED", "APPOINTMENT BOOKED"])
     .gte("scheduled_at", nowIso);
 
+  // You can refine this later; for now we don't use PENDING_CONFIRMATION at all
   const { count: pendingConfirmation } = await supabase
     .from(TABLE)
     .select("id", { count: "exact", head: true })
-    .eq("status", "PENDING_CONFIRMATION")
+    .eq("status", "NEEDS VA TO FOLLOW UP")        // or just 0 if you don't want this tile
     .gte("scheduled_at", nowIso);
 
   const { count: noShowsAllTime } = await supabase
     .from(TABLE)
     .select("id", { count: "exact", head: true })
-    .eq("status", "NO_SHOW");
+    .eq("status", "NO SHOW");
 
   const { count: completedAllTime } = await supabase
     .from(TABLE)
     .select("id", { count: "exact", head: true })
-    .eq("status", "COMPLETED");
+    .eq("status", "APPOINTMENT COMPLETED");
 
   return {
     scheduledUpcoming: scheduledUpcoming || 0,
@@ -84,7 +98,7 @@ async function getUpcomingAppointments({ days = 7 }) {
     )
     .gte("scheduled_at", now.toISOString())
     .lte("scheduled_at", to.toISOString())
-    .in("status", ["SCHEDULED", "PENDING_CONFIRMATION"])
+    .in("status", ["SCHEDULED", "APPOINTMENT BOOKED"])
     .order("scheduled_at", { ascending: true });
 
   if (error) throw error;
@@ -121,36 +135,44 @@ async function getAppointmentsInRange({ start, end }) {
 async function createAppointment(payload) {
   const {
     lead_id,
+    lead_name,
     scheduled_at,
     status,
     service_type,
     expected_value,
     notes,
-    // personal info fields
     location,
     dob,
     insurance,
   } = payload;
 
-  // 1) Update lead personal info in premier if anything is provided
-  if (location || dob || insurance) {
-    const leadUpdates = buildUpdates({
-      location_preference: location || undefined,
-      dob: dob || undefined,
-      insurance: insurance || undefined,
-    });
+  // 1) Update lead personal info in premier, INCLUDING lead_name
+  const leadUpdates = buildUpdates({
+    lead_name: lead_name || undefined,
+    location_preference: location || undefined,
+    dob: dob || undefined,
+    insurance: insurance || undefined,
+  });
 
-    if (Object.keys(leadUpdates).length > 0) {
-      const { error: leadError } = await supabase
-        .from(LEADS_TABLE)
-        .update(leadUpdates)
-        .eq("id", lead_id);
+  if (Object.keys(leadUpdates).length > 0) {
+    const { error: leadError } = await supabase
+      .from(LEADS_TABLE)
+      .update(leadUpdates)
+      .eq("id", lead_id);
 
-      if (leadError) {
-        console.error("Supabase error updating lead (createAppointment):", leadError);
-        throw leadError;
-      }
+    if (leadError) {
+      console.error(
+        "Supabase error updating lead (createAppointment):",
+        leadError
+      );
+      throw leadError;
     }
+  }
+
+  // IMPORTANT: default status must be something allowed by the CHECK constraint
+  let statusToInsert = status;
+  if (!statusToInsert || !STATUS_VALUES.includes(statusToInsert)) {
+    statusToInsert = "SCHEDULED"; // safe default
   }
 
   // 2) Create appointment row
@@ -159,7 +181,7 @@ async function createAppointment(payload) {
     .insert({
       lead_id,
       scheduled_at,
-      status: status || "PENDING_CONFIRMATION",
+      status: statusToInsert,
       service_type: service_type || null,
       expected_value: expected_value ?? null,
       notes: notes || null,
@@ -167,7 +189,10 @@ async function createAppointment(payload) {
     .select("*")
     .single();
 
-  if (error) throw error;
+  if (error) {
+    console.error("Supabase error inserting appointment:", error);
+    throw error;
+  }
 
   return mapAppointment(data);
 }
@@ -188,8 +213,9 @@ async function updateAppointment(id, payload) {
   } = payload;
 
   // 1) Optionally update lead personal info if we have a lead_id
-  if ((location || dob || insurance) && lead_id) {
+  if ((location || dob || insurance || payload.lead_name) && lead_id) {
     const leadUpdates = buildUpdates({
+      lead_name: payload.lead_name || undefined,
       location_preference: location || undefined,
       dob: dob || undefined,
       insurance: insurance || undefined,
@@ -202,7 +228,10 @@ async function updateAppointment(id, payload) {
         .eq("id", lead_id);
 
       if (leadError) {
-        console.error("Supabase error updating lead (updateAppointment):", leadError);
+        console.error(
+          "Supabase error updating lead (updateAppointment):",
+          leadError
+        );
         throw leadError;
       }
     }

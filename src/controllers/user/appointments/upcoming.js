@@ -5,7 +5,7 @@ const { validate, verifyAuth } = require("@src/middleware");
 const { getUpcomingAppointments } = require("@src/services/appointmentsService");
 
 const CONTROLLER = [
-  verifyAuth(),
+  // verifyAuth(),
   validate({
     query: Joi.object({
       days: Joi.number().integer().min(1).max(30).optional(),

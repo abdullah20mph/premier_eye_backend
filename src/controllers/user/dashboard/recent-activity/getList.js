@@ -5,7 +5,7 @@ const { validate, verifyAuth } = require("@src/middleware");
 const { getRecentActivity } = require("@src/services/getRecentActivity");
 
 const CONTROLLER = [
-    verifyAuth(),
+    // verifyAuth(),
   // validate query params
   validate({
     query: Joi.object({

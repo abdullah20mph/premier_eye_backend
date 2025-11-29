@@ -1,29 +1,40 @@
+// src/controllers/user/aiSalesCalls/list.js (or similar)
 "use strict";
 
 const Joi = require("joi");
 const { getAiSalesCalls } = require("@src/services/aiSalesCallService");
-const { validate,verifyAuth } = require("@src/middleware");
+const { validate, verifyAuth } = require("@src/middleware");
 const { response } = require("@src/utils");
 
 const CONTROLLER = [
-  // verify authentication
-  verifyAuth(),
-  // validate query params
+  // verifyAuth(),  // enable when ready
+
   validate({
     query: Joi.object({
-      page: Joi.number().integer().min(1).optional(),
-      limit: Joi.number().integer().min(1).max(100).optional(),
-      status: Joi.string().optional(),
-      search: Joi.string().optional(),
+      page: Joi.number().integer().min(1).default(1),
+      limit: Joi.number().integer().min(1).max(100).default(50),
+      status: Joi.string().optional(), // "answered,voicemail"
+      search: Joi.string().allow("", null).optional(),
     }),
   }),
 
-  // actual handler
   async function listAiSalesCalls(req, res) {
     try {
       const { page, limit, status, search } = req.query;
 
-      const data = await getAiSalesCalls({ page, limit, status, search });
+      const statuses = status
+        ? status
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : null;
+
+      const data = await getAiSalesCalls({
+        page,
+        limit,
+        statuses,
+        search,
+      });
 
       return response.send(
         1,
@@ -47,35 +58,3 @@ const CONTROLLER = [
 ];
 
 module.exports = CONTROLLER;
-
-/**
- * @swagger
- * /user/ai-sales-calls/list:
- *   get:
- *     tags: [AI Sales Calls]
- *     summary: Get paginated AI sales call feed
- *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *         description: Page number (default 1)
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *         description: Page size (default 20)
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *         description: Comma-separated call statuses to filter (e.g. answered,booked)
- *       - in: query
- *         name: search
- *         schema:
- *           type: string
- *         description: Search by lead name
- *     responses:
- *       200:
- *         description: AI Sales Calls list
- */

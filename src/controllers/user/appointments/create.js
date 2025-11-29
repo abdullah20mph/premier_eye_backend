@@ -36,11 +36,12 @@ const INSURANCE_PROVIDERS = [
 ];
 
 const CONTROLLER = [
-  verifyAuth(),
+  // verifyAuth(),
   validate({
     body: Joi.object({
       // appointment core
       lead_id: Joi.number().integer().required(),
+      lead_name: Joi.string().allow("", null).optional(),
       scheduled_at: Joi.string().isoDate().required(),
 
       status: Joi.string()

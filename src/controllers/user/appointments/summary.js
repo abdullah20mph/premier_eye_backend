@@ -7,7 +7,7 @@ const { validate, verifyAuth } = require("@src/middleware");
 const { getAppointmentsSummary } = require("@src/services/appointmentsService");
 
 const CONTROLLER = [
-  verifyAuth(),
+  // verifyAuth(),
   validate({ query: Joi.object({}) }),
 
   async function appointmentsSummaryController(req, res) {

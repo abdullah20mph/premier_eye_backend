@@ -2,62 +2,82 @@
 
 const { supabase } = require("@src/config/supabase");
 
-const TABLE_NAME = "premier"; // change to "premier" if that’s your table
-
 /**
- * Fetch paginated AI sales call data
- * Supports:
- *  - page / limit
- *  - status filter (?status=answered,booked)
- *  - search by lead name (?search=kim)
+ * Fetch paginated AI sales calls.
+ *
+ * @param {Object} params
+ * @param {number} [params.page=1]
+ * @param {number} [params.limit=50]
+ * @param {string[]} [params.statuses]   // ["answered","voicemail",...]
+ * @param {string} [params.search]       // search by lead_name
  */
-async function getAiSalesCalls({ page = 1, limit = 20, status, search }) {
-  page = Number(page) || 1;
-  limit = Number(limit) || 20;
+async function getAiSalesCalls({
+  page = 1,
+  limit = 50,
+  statuses = null,
+  search = "",
+}) {
+  const offset = (page - 1) * limit;
 
-  const from = (page - 1) * limit;
-  const to = from + limit - 1;
-
+  // 🔹 Build base query
   let query = supabase
-    .from(TABLE_NAME)
-    .select("id, created_at, lead_name, location_preference, call_status, call_summary", { count: "exact" })
-    .order("id", { descending: true })
-    .range(from, to);
+    .from("ai_sales_calls")
+    .select(
+      `
+      id,
+      ts,
+      duration_sec,
+      outcome,
+      summary,
+      recording_url,
+      lead_id,
+      premier:premier!ai_sales_calls_lead_id_fkey (
+        id,
+        lead_name,
+        lead_number,
+        location_preference
+      )
+    `,
+      { count: "exact" }
+    )
+    .order("ts", { ascending: false })
+    .range(offset, offset + limit - 1);
 
-  // optional status filter (comma separated)
-  if (status) {
-    const statuses = String(status)
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
-
-    if (statuses.length > 0) {
-      query = query.in("call_status", statuses);
-    }
+  // 🔹 Filter by status (answered, voicemail, no_response, booked)
+  if (statuses && statuses.length) {
+    query = query.in("outcome", statuses);
   }
 
-  // optional search on lead_name
+  // 🔹 Simple name search
   if (search) {
-    query = query.ilike("lead_name", `%${search}%`);
+    query = query.ilike("premier.lead_name", `%${search}%`);
   }
 
   const { data, error, count } = await query;
 
   if (error) {
+    console.error("Supabase getAiSalesCalls error:", error);
     throw error;
   }
 
-  const total = count || 0;
-  const totalPages = Math.ceil(total / limit);
+  // ✅ Shape rows exactly like your Frontend `BackendAiCallRow`
+  const items = (data || []).map((row) => ({
+    id: row.id,
+    ts: row.ts,
+    outcome: row.outcome,
+    summary: row.summary,
+    recording_url: row.recording_url,
+    lead_id: row.lead_id,
+    lead_name: row.premier?.lead_name ?? null,
+    lead_number: row.premier?.lead_number ?? null,
+    location_preference: row.premier?.location_preference ?? null,
+  }));
 
   return {
-    items: data || [],
-    pagination: {
-      page,
-      limit,
-      total,
-      totalPages,
-    },
+    items,
+    total: count ?? 0,
+    page,
+    limit,
   };
 }
 

@@ -13,11 +13,11 @@ const { getOverviewCalls } = require("@src/services/overviewService");
  *  - limit (optional, default 10)
  */
 const CONTROLLER = [
-  verifyAuth(),
+  // verifyAuth(),
   validate({
     query: Joi.object({
       page: Joi.number().integer().min(1).optional(),
-      limit: Joi.number().integer().min(1).max(100).optional(),
+      limit: Joi.number().integer().min(1).max(500).optional(),
     }),
   }),
 

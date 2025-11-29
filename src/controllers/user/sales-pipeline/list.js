@@ -4,7 +4,7 @@ const { getSalesPipeline } = require("@src/services/salesPipelineService");
 const { verifyAuth } = require("@src/middleware");
 
 const CONTROLLER = [
-  verifyAuth(),
+  // verifyAuth(),
   // no validation needed – simple GET
   async function listSalesPipelineController(req, res) {
     try {
