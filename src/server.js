@@ -89,7 +89,7 @@ app.use(
 
 app.use(bodyParser.json({ limit: "10mb" }));
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
+app.options("/*", cors(corsOptions));
 app.use(passport.initialize());
 app.use(passport.session());
 
