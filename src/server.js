@@ -79,20 +79,20 @@ app.use(
 
 // ---------------------------- MIDDLEWARES ----------------------------
 app.use(
-  session({
-    secret: SESSION_SECRET,
-    name: "session_id",
-    resave: true,
-    saveUninitialized: true,
-  })
+    session({
+        secret: SESSION_SECRET,
+        name: "session_id",
+        resave: true,
+        saveUninitialized: true,
+    })
 );
 
 app.use(bodyParser.json({ limit: "10mb" }));
 app.use(cors(corsOptions));
-app.use(bodyParser.json({ limit: "10mb" }));
+// app.options("*", cors(corsOptions));
 app.use(passport.initialize());
 app.use(passport.session());
-    
+
 // ---------------------------- ROUTES ----------------------------
 app.use(routes);
 
