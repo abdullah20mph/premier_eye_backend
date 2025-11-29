@@ -23,13 +23,37 @@ const { swaggerDefinition } = require("./swagger");
 const swaggerDocs = swaggerJsDoc(swaggerDefinition);
 
 // Other config
+// Other config
 const SESSION_SECRET = process.env.SESSION_SECRET || "secret_key";
-const CORS_ORIGIN = process.env.CORS_ORIGIN || "*";
+
+// Comma-separated list from env, e.g.
+// CORS_ORIGIN=http://localhost:3000,https://premiereyefrontend.vercel.app
+const rawOrigins = process.env.CORS_ORIGIN || "";
+const allowedOrigins = rawOrigins
+  .split(",")
+  .map((o) => o.trim())
+  .filter(Boolean);
 
 const corsOptions = {
-    origin: CORS_ORIGIN,
-    optionsSuccessStatus: 200,
+  origin(origin, callback) {
+    // allow tools like curl / Postman (no origin header)
+    if (!origin) return callback(null, true);
+
+    // allow all if no env set, or wildcard
+    if (
+      allowedOrigins.length === 0 ||
+      allowedOrigins.includes("*") ||
+      allowedOrigins.includes(origin)
+    ) {
+      return callback(null, true);
+    }
+
+    return callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true,
+  optionsSuccessStatus: 200,
 };
+
 
 // ---------------------------- SWAGGER SETUP ----------------------------
 app.use(
@@ -55,16 +79,17 @@ app.use(
 
 // ---------------------------- MIDDLEWARES ----------------------------
 app.use(
-    session({
-        secret: SESSION_SECRET,
-        name: "session_id",
-        resave: true,
-        saveUninitialized: true,
-    })
+  session({
+    secret: SESSION_SECRET,
+    name: "session_id",
+    resave: true,
+    saveUninitialized: true,
+  })
 );
 
 app.use(bodyParser.json({ limit: "10mb" }));
 app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 app.use(passport.initialize());
 app.use(passport.session());
 

@@ -8,7 +8,7 @@ const CONTROLLER = [
 
   async function getProfileController(req, res) {
     try {
-      const userId = req.user.id;
+      const userId = 1;
       const profile = await getUserProfile(userId);
 
       return res.json({
