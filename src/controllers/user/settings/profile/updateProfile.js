@@ -5,7 +5,7 @@ const { verifyAuth, validate } = require("@src/middleware");
 const { updateUserProfile } = require("@src/services/userProfileService");
 
 const CONTROLLER = [
-  // verifyAuth(),
+  verifyAuth(),
   validate({
     body: Joi.object({
       display_name: Joi.string().min(2).max(100).optional(),
