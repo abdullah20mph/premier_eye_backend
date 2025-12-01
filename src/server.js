@@ -18,6 +18,7 @@ const swaggerJsDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 const { swaggerAuth } = require("@src/middleware");
 const { swaggerDefinition } = require("./swagger");
+const healthRoutes = require("./routes/health.routes");
 
 // Build swagger docs
 const swaggerDocs = swaggerJsDoc(swaggerDefinition);
@@ -62,6 +63,9 @@ app.use(
         saveUninitialized: true,
     })
 );
+
+// ------ health check route ------
+app.use("/", healthRoutes);
 
 app.use(bodyParser.json({ limit: "10mb" }));
 app.use(cors(corsOptions));
