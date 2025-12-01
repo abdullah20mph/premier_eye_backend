@@ -28,7 +28,8 @@ router
 //handle root route
 router
   .use(auth)
-  .use(user);
+  .use(user)
+  .use(require("./health.routes"));
 
 if (process.env.NODE_ENV === 'PRODUCTION') {
   //TODO
