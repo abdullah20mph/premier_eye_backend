@@ -11,7 +11,7 @@ const CONTROLLER = [
     body: Joi.object().keys({
       firstName: Joi.string().required(),
       lastName: Joi.string().required(),
-      displayName: Joi.string().optional(),
+      displayName: Joi.string().allow(null).optional(),
       email: Joi.string().email().required(),
       password: Joi.string().min(6).required(),
       confirmPassword: Joi.string().valid(Joi.ref("password")).required(),
@@ -43,7 +43,7 @@ const CONTROLLER = [
             last_name: lastName,
             display_name:
               !displayName || displayName.trim().length === 0
-                ? `${firstName} ${lastName}`
+                ? `${firstName} ${lastName}` // Default fallback
                 : displayName.trim(),
             email,
             password_hash,
