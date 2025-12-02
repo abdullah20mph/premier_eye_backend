@@ -10,7 +10,7 @@ const CONTROLLER = [
   validate({
     query: Joi.object({
       page: Joi.number().integer().min(1).optional(),
-      limit: Joi.number().integer().min(1).max(100).optional(),
+      limit: Joi.number().integer().min(1).max(1000).optional(),
       search: Joi.string().allow("", null).optional(),
       source: Joi.string().allow("", null).optional(), // e.g. "Google Ads,Website Chat"
       status: Joi.string().allow("", null).optional(), // e.g. "Needs VA Follow-Up,New"
