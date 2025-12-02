@@ -41,7 +41,7 @@ const CONTROLLER = [
           {
             first_name: firstName,
             last_name: lastName,
-            display_name: displayName || `${firstName} ${lastName}`,
+            display_name: displayName?.trim() || `${firstName} ${lastName}`,
             email,
             password_hash,
           },
