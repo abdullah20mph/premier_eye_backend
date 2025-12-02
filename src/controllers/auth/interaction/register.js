@@ -41,7 +41,10 @@ const CONTROLLER = [
           {
             first_name: firstName,
             last_name: lastName,
-            display_name: displayName?.trim() || `${firstName} ${lastName}`,
+            display_name:
+              !displayName || displayName.trim().length === 0
+                ? `${firstName} ${lastName}`
+                : displayName.trim(),
             email,
             password_hash,
           },
