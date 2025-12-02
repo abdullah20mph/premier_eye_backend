@@ -42,7 +42,7 @@ const corsOptions = {
 
 // ---------- CALL CORS HERE ----------
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
+app.options("/*", cors(corsOptions));
 
 // ---------- BODY PARSER ----------
 app.use(bodyParser.json({ limit: "10mb" }));
