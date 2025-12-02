@@ -5,7 +5,7 @@ const { verifyAuth, validate } = require("@src/middleware");
 const { changeUserPassword } = require("@src/services/userProfileService");
 
 const CONTROLLER = [
-  // verifyAuth(),
+  verifyAuth(),
   validate({
     body: Joi.object({
       current_password: Joi.string().required(),

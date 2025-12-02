@@ -3,7 +3,10 @@
 // ------------------------- Exports -------------------------
 
 module.exports = {
-    ...require("./getAiSalesCalls"),
-    ...require("./getOverviewCalls"),
+    ...require("./aiSalesCallService"),
+    ...require("./appointmentsService"),
     ...require("./getRecentActivity"),
+    ...require("./userProfileService"),
+    ...require("./salesPipelineService"),
+    ...require("./userService"),
 }

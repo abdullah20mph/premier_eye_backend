@@ -5,18 +5,19 @@ const { verifyAuth, validate } = require("@src/middleware");
 const { updateUserProfile } = require("@src/services/userProfileService");
 
 const CONTROLLER = [
-  // verifyAuth(),
+  verifyAuth(),
+
   validate({
     body: Joi.object({
       display_name: Joi.string().min(2).max(100).optional(),
       email: Joi.string().email().optional(),
-      username: Joi.string().min(3).max(50).optional(),
-    }).min(1), // at least one field
+    }).min(1), // at least 1 field required
   }),
 
   async function updateProfileController(req, res) {
     try {
       const userId = req.user.id;
+
       const profile = await updateUserProfile(userId, req.body);
 
       return res.json({
@@ -24,14 +25,15 @@ const CONTROLLER = [
         message: "Profile updated successfully",
         data: profile,
       });
+
     } catch (err) {
       console.error("Update profile error:", err);
 
-      // handle unique username violation nicely
+      // Unique email constraint
       if (err.code === "23505") {
         return res.status(400).json({
           success: false,
-          message: "Username or email already in use",
+          message: "Email already in use",
         });
       }
 
@@ -45,12 +47,13 @@ const CONTROLLER = [
 
 module.exports = CONTROLLER;
 
+
 /**
  * @swagger
  * /user/settings/profile:
  *   patch:
  *     tags: [Settings]
- *     summary: Update profile information (display name, email, username)
+ *     summary: Update profile information (display name, email)
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -62,18 +65,15 @@ module.exports = CONTROLLER;
  *             properties:
  *               display_name:
  *                 type: string
- *                 example: Dr. Smith
+ *                 example: John Doe
  *               email:
  *                 type: string
- *                 example: dr.smith@agentum.ai
- *               username:
- *                 type: string
- *                 example: drsmith
+ *                 example: john.doe@example.com
  *     responses:
  *       200:
  *         description: Profile updated successfully
  *       400:
- *         description: Validation error or username/email already used
+ *         description: Validation error or email already used
  *       401:
  *         description: Unauthorized
  */

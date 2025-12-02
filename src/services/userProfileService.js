@@ -15,7 +15,6 @@ async function getUserProfile(userId) {
         last_name,
         display_name,
         email,
-        username,
         created_at,
         updated_at
       `
@@ -32,9 +31,11 @@ async function updateUserProfile(userId, payload) {
     updated_at: new Date().toISOString(),
   };
 
-  if (payload.display_name !== undefined) update.display_name = payload.display_name;
-  if (payload.username !== undefined) update.username = payload.username;
-  if (payload.email !== undefined) update.email = payload.email;
+  if (payload.display_name !== undefined)
+    update.display_name = payload.display_name;
+
+  if (payload.email !== undefined)
+    update.email = payload.email;
 
   const { data, error } = await supabase
     .from(USERS_TABLE)
@@ -47,7 +48,6 @@ async function updateUserProfile(userId, payload) {
         last_name,
         display_name,
         email,
-        username,
         created_at,
         updated_at
       `
@@ -59,7 +59,7 @@ async function updateUserProfile(userId, payload) {
 }
 
 async function changeUserPassword(userId, currentPassword, newPassword) {
-  // 1) fetch user with hash
+  // Fetch user
   const { data: user, error } = await supabase
     .from(USERS_TABLE)
     .select("id, password_hash")
@@ -72,7 +72,6 @@ async function changeUserPassword(userId, currentPassword, newPassword) {
     throw err;
   }
 
-  // 2) verify current password
   const ok = await bcrypt.compare(currentPassword, user.password_hash);
   if (!ok) {
     const err = new Error("Current password is incorrect");
@@ -80,7 +79,6 @@ async function changeUserPassword(userId, currentPassword, newPassword) {
     throw err;
   }
 
-  // 3) hash new password & update
   const newHash = await bcrypt.hash(newPassword, 10);
 
   const { error: updateError } = await supabase

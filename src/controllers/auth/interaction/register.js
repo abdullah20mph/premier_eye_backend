@@ -11,15 +11,17 @@ const CONTROLLER = [
     body: Joi.object().keys({
       firstName: Joi.string().required(),
       lastName: Joi.string().required(),
+      displayName: Joi.string().optional(),
       email: Joi.string().email().required(),
       password: Joi.string().min(6).required(),
       confirmPassword: Joi.string().valid(Joi.ref("password")).required(),
-
     }),
   }),
-  async function userRegisterController (req, res) {
+
+  async function userRegisterController(req, res) {
     try {
-      const { firstName, lastName, email, password } = req.body;
+      const { firstName, lastName, displayName, email, password } = req.body;
+
       // check if user exists
       const { data: existingUser } = await supabase
         .from("users")
@@ -39,6 +41,7 @@ const CONTROLLER = [
           {
             first_name: firstName,
             last_name: lastName,
+            display_name: displayName || `${firstName} ${lastName}`,
             email,
             password_hash,
           },
@@ -57,6 +60,7 @@ const CONTROLLER = [
             id: user.id,
             firstName: user.first_name,
             lastName: user.last_name,
+            displayName: user.display_name,
             email: user.email,
             createdAt: user.created_at,
           },
@@ -65,14 +69,7 @@ const CONTROLLER = [
       );
     } catch (err) {
       console.error(err);
-      return response.send(
-        0,
-        500,
-        "Registration failed",
-        null,
-        res,
-        err
-      );
+      return response.send(0, 500, "Registration failed", null, res, err);
     }
   },
 ];
@@ -99,6 +96,9 @@ module.exports = CONTROLLER;
  *               lastName:
  *                 type: string
  *                 example: Doe
+ *               display_name:
+ *                 type: string
+ *                 example: Johnny
  *               email:
  *                 type: string
  *                 example: user@example.com

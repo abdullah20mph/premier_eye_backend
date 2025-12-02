@@ -8,8 +8,12 @@ const router = Router();
 
 router.route("/profile")
   .get(getProfileController)
+
+router.route("/profile")
   .patch(updateProfileController);
 
 router.route("/password")
   .patch(changePasswordController); // PATCH /user/settings/password
-module.exports = Router().use("/settings", router);
+
+
+  module.exports = Router().use("/settings", router);

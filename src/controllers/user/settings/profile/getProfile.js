@@ -4,11 +4,11 @@ const { verifyAuth } = require("@src/middleware");
 const { getUserProfile } = require("@src/services/userProfileService");
 
 const CONTROLLER = [
-  // verifyAuth(),
+  verifyAuth(),
 
   async function getProfileController(req, res) {
     try {
-      const userId = 1;
+      const userId = req.user.id;
       const profile = await getUserProfile(userId);
 
       return res.json({
