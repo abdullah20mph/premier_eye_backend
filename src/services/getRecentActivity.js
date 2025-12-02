@@ -2,12 +2,8 @@
 
 const { supabase } = require("@src/config/supabase");
 
-const TABLE_NAME = "premier"; // change if your table name is different
+const TABLE_NAME = "premier";
 
-/**
- * Fetch paginated recent activity from Supabase.
- * Supports search, source filter, and status filter.
- */
 async function getRecentActivity({ page = 1, limit = 20, search, source, status }) {
   page = Number(page) || 1;
   limit = Number(limit) || 20;
@@ -15,13 +11,14 @@ async function getRecentActivity({ page = 1, limit = 20, search, source, status 
   const from = (page - 1) * limit;
   const to = from + limit - 1;
 
+  // 1️⃣ Base query for leads (premier)
   let query = supabase
     .from(TABLE_NAME)
-    .select("*", { count: "exact" }) // all columns
+    .select("*", { count: "exact" })
     .order("id", { descending: true })
     .range(from, to);
 
-  // 🔍 Search in lead_name, lead_number, email
+  // 🔍 Search filter
   if (search) {
     const s = `%${search}%`;
     query = query.or(
@@ -29,46 +26,82 @@ async function getRecentActivity({ page = 1, limit = 20, search, source, status 
     );
   }
 
-  // 🏷️ Filter by source (maps to `service` column)
+  // 🏷️ Source filter (maps to service)
   if (source) {
     const sources = String(source)
       .split(",")
       .map((v) => v.trim())
       .filter(Boolean);
 
-    if (sources.length) {
-      query = query.in("service", sources);
-    }
+    if (sources.length) query = query.in("service", sources);
   }
 
-  // 🧾 Filter by status (maps to `call_status` column)
+  // 🧾 Status filter (maps to call_status)
   if (status) {
     const statuses = String(status)
       .split(",")
       .map((v) => v.trim())
       .filter(Boolean);
 
-    if (statuses.length) {
-      query = query.in("call_status", statuses);
+    if (statuses.length) query = query.in("call_status", statuses);
+  }
+
+  const { data: leadRows, error, count } = await query;
+  if (error) throw error;
+
+  const leads = leadRows || [];
+  const leadIds = leads.map((row) => row.id);
+
+  // 2️⃣ Fetch appointments for these leads
+  let apptRows = [];
+  if (leadIds.length) {
+    const { data: apptsData, error: apptsError } = await supabase
+      .from("appointments")
+      .select("id, lead_id, scheduled_at, status")
+      .in("lead_id", leadIds)
+      .order("scheduled_at", { ascending: false });
+
+    if (apptsError) throw apptsError;
+    apptRows = apptsData || [];
+  }
+
+  // 3️⃣ Group appointments by lead_id
+  const apptsByLead = new Map();
+  for (const appt of apptRows) {
+    if (!apptsByLead.has(appt.lead_id)) apptsByLead.set(appt.lead_id, []);
+    apptsByLead.get(appt.lead_id).push(appt);
+  }
+
+  // 4️⃣ Expand: one item per appointment (or one empty item if none)
+  const items = [];
+  for (const row of leads) {
+    const appts = apptsByLead.get(row.id) || [];
+
+    if (!appts.length) {
+      items.push({
+        ...row,
+        appointmentDate: null,
+        appointmentStatus: null,
+      });
+      continue;
+    }
+
+    for (const appt of appts) {
+      items.push({
+        ...row,
+        appointmentDate: appt.scheduled_at,
+        appointmentStatus: appt.status,
+      });
     }
   }
 
-  const { data, error, count } = await query;
-
-  if (error) {
-    throw error;
-  }
-
-  const total = count || 0;
-  const totalPages = Math.ceil(total / limit);
-
   return {
-    items: data || [],
+    items,
     pagination: {
       page,
       limit,
-      total,
-      totalPages,
+      total: items.length,
+      totalPages: Math.ceil(items.length / limit),
     },
   };
 }
