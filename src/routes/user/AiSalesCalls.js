@@ -9,4 +9,4 @@ const router = Router();
 // GET /ai-sales-calls
 router.route("/list").get(listAiSalesCalls);
 
-module.exports = Router().use("/ai-sales-calls", router);
+module.exports = Router().use("/ai-calls", router);

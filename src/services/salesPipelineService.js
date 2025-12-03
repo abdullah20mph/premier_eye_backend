@@ -26,89 +26,64 @@ function mapLead(row) {
 
 /**
  * Get the full sales pipeline grouped by stage.
- * Shape:
- * {
- *   NEW_LEAD: { stage: "NEW_LEAD", count: 0, leads: [...] },
- *   AI_ENGAGING: { ... },
- *   ...
- * }
  */
 async function getSalesPipeline() {
   const { data, error } = await supabase
     .from(LEADS_TABLE)
-    .select(
-      `
+    .select(`
       id,
       lead_name,
       lead_number,
-      location_preference,
       email,
+      location_preference,
       pipeline_stage
-    `
-    );
+    `);
 
   if (error) throw error;
 
-  const byStage = {};
+  const grouped = {};
 
-  // initialize all stages
-  for (const stage of PIPELINE_STAGES) {
-    byStage[stage] = {
-      stage,
-      count: 0,
-      leads: [],
-    };
+  for (const row of data || []) {
+    const stage = row.pipeline_stage || "NEW_LEAD";
+
+    if (!grouped[stage]) {
+      grouped[stage] = {
+        stage,
+        count: 0,
+        leads: [],
+      };
+    }
+
+    grouped[stage].leads.push(mapLead(row));
+    grouped[stage].count += 1;
   }
 
-  (data || []).forEach((row) => {
-    const lead = mapLead(row);
-    const stage = PIPELINE_STAGES.includes(lead.pipeline_stage)
-      ? lead.pipeline_stage
-      : "NEW_LEAD";
-
-    byStage[stage].leads.push(lead);
-    byStage[stage].count += 1;
-  });
-
-  return byStage;
+  return grouped;
 }
 
 /**
- * Update a single lead's pipeline stage (for drag-and-drop).
+ * Update a single lead's stage.
  */
 async function updateLeadStage(leadId, newStage) {
   if (!PIPELINE_STAGES.includes(newStage)) {
-    const err = new Error("Invalid pipeline stage");
-    err.code = "INVALID_STAGE";
-    throw err;
+    throw new Error("Invalid pipeline stage");
   }
 
   const { data, error } = await supabase
     .from(LEADS_TABLE)
     .update({ pipeline_stage: newStage })
     .eq("id", leadId)
-    .order("id", { ascending: true })
-    .select(
-      `
+    .select(`
       id,
       lead_name,
       lead_number,
       location_preference,
       email,
       pipeline_stage
-    `
-    )
+    `)
     .single();
 
-  if (error) {
-    if (error.code === "PGRST116") {
-      // no rows found
-      const err = new Error("Lead not found");
-      err.code = "NOT_FOUND";
-      throw err;
-    }
-    throw error;
-  }
+  if (error) throw error;
 
   return mapLead(data);
 }

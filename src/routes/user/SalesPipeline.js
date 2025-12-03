@@ -9,7 +9,7 @@ const {
 const router = Router();
 
 // GET /user/sales-pipeline  -> full board
-router.route("/")
+router.route("/get-pipeline")
   .get(listSalesPipelineController);
 
 // PATCH /user/sales-pipeline/:id/stage  -> drag & drop
