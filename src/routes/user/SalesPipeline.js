@@ -2,18 +2,18 @@
 
 const { Router } = require("express");
 const {
-  listSalesPipelineController,
-  updateLeadStageController,
+  getPipeline,
+  updateStage,
 } = require("@src/controllers/user/sales-pipeline");
 
 const router = Router();
 
 // GET /user/sales-pipeline  -> full board
-router.route("/get-pipeline")
-  .get(listSalesPipelineController);
+router.route("/")
+  .get(getPipeline);
 
 // PATCH /user/sales-pipeline/:id/stage  -> drag & drop
 router.route("/:id/stage")
-  .patch(updateLeadStageController);
+  .patch(updateStage);
 
 module.exports = Router().use("/sales-pipeline", router);

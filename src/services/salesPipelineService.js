@@ -1,3 +1,4 @@
+// @src/services/salesPipelineService.js
 "use strict";
 
 const { supabase } = require("@src/config/supabase");
@@ -26,6 +27,12 @@ function mapLead(row) {
 
 /**
  * Get the full sales pipeline grouped by stage.
+ * Returns:
+ * {
+ *   NEW_LEAD: { stage: 'NEW_LEAD', count: number, leads: [...] },
+ *   AI_ENGAGING: { ... },
+ *   ...
+ * }
  */
 async function getSalesPipeline() {
   const { data, error } = await supabase

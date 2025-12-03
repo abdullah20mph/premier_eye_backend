@@ -1,5 +1,5 @@
 
 
 
-exports.listSalesPipelineController = require('./list.js');
-exports.updateLeadStageController = require('./updateStage.js');
+exports.getPipeline = require('./list.js');
+exports.updateStage = require('./updateStage.js');
