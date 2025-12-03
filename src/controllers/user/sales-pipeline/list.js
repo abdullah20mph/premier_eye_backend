@@ -2,7 +2,7 @@
 "use strict";
 
 const Joi = require("joi");
-const { getSalesPipeline } = require("./../../../services/salesPipelineService");
+const { getSalesPipeline } = require("@src/services/salesPipelineService");
 const { validate } = require("@src/middleware");
 const { response } = require("@src/utils");
 
