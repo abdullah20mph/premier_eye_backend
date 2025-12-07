@@ -12,7 +12,7 @@ const CONTROLLER = [
   validate({
     query: Joi.object({
       page: Joi.number().integer().min(1).default(1),
-      // limit: Joi.number().integer().min(1).max(1000),
+      limit: Joi.number().integer().min(1).max(1000).default(50),
       status: Joi.string().optional(), // "ended,not_connected"
       search: Joi.string().allow("", null).optional(),
     }),

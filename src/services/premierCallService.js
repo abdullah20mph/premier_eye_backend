@@ -64,7 +64,7 @@ async function getPremierCalls({
     items,
     total: count || 0,
     page,      // still return for compatibility
-    limit: null, // always null
+    limit: 50, // always 50
   };
 }
 
