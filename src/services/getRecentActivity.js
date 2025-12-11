@@ -82,6 +82,7 @@ async function getRecentActivity({ page = 1, limit = 20, search, source, status 
         ...row,
         appointmentDate: null,
         appointmentStatus: null,
+        call_summary: row.call_summary || null,
       });
       continue;
     }
@@ -91,6 +92,7 @@ async function getRecentActivity({ page = 1, limit = 20, search, source, status 
         ...row,
         appointmentDate: appt.scheduled_at,
         appointmentStatus: appt.status,
+        call_summary: row.call_summary || null,
       });
     }
   }

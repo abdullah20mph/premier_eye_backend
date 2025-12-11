@@ -16,7 +16,8 @@ function mapOverviewRow(row) {
     location_preference: row.location_preference,
     source: row.source || null,          // if you add a source column later
     pipeline_stage: row.pipeline_stage,  // should be "NEEDS_ACTION" here
-    ai_summary: row.call_summary || null,
+    ai_summary: row.call_status || null,
+    call_summary: row.call_summary || null, // surface raw call summary for detail modal
     latest_reply: row.latest_reply || null, // or map from another field if needed
     created_at: row.created_at,
     timestamp: row.timestamp || null,
